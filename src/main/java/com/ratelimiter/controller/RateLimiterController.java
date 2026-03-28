@@ -1,27 +1,28 @@
 package com.ratelimiter.controller;
 
-import com.ratelimiter.service.RateLimiterService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api")
 public class RateLimiterController {
 
-    @Autowired
-    private RateLimiterService rateLimiterService;
+    private static final Logger log = LoggerFactory.getLogger(RateLimiterController.class);
 
-    @GetMapping("/resource")
-    public ResponseEntity<String> accessResource(@RequestHeader(value = "User-Id", defaultValue = "defaultUser") String userId) {
-        if (rateLimiterService.allowed(userId)) {
-            return ResponseEntity.ok("Request successful! Resource accessed.");
-        } else {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many requests! Rate limit exceeded.");
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint(HttpServletRequest request) {
+        String userId = request.getHeader("User-Id");
+        if (userId == null) {
+            userId = request.getRemoteAddr();
         }
+        log.info("Handling request for user: {}", userId);
+        return ResponseEntity.ok("Success! Request allowed for user: " + userId);
     }
 }
